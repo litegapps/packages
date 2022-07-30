@@ -264,6 +264,13 @@ RESTORE(){
 					print "- Extract ZIP to $BASED/files/$A/$B"
 					mkdir -p $BASED/files/$A/$B
 					unzip -o $BASED/zip-server/$A/${B}.zip -d $BASED/files/$A/$B >/dev/null
+					if [ $? -eq 0 ]; then
+						print "- Unzip $BASED/zip-server/$A/${B}.zip succesfully"
+					else
+						print "! Unzip $BASED/zip-server/$A/${B}.zip error"
+						print "+ Removing zip"
+						rm -rf $BASED/zip-server/$A/${B}.zip
+					fi
 				else
 					print "! file <$BASED/zip-server/$A/${B}.zip> is not found"
 					exit 1
