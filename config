@@ -1,3 +1,4 @@
 arch=arm64
-sdk=32
+sdk=31
 zipsigner=true
+by=wahyu6070

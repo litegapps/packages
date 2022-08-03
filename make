@@ -10,6 +10,24 @@ printmid() {
   local indent=$((hfCOLUMN-hfCHAR))
   echo "$(printf '%*s' "${indent}" '') $@"
 }
+get_android_version(){
+	local input=$1
+	case $input in
+		21) echo 5.0 ;;
+		22) echo 5.1 ;;
+		23) echo 6.0 ;;
+		24) echo 7.0 ;;
+		25) echo 7.1 ;;
+		26) echo 8.0 ;;
+		27) echo 8.1 ;;
+		28) echo 9.0 ;;
+		29) echo 10.0 ;;
+		30) echo 11.0 ;;
+		31) echo 12.0 ;;
+		32) echo 12.1 ;;
+		33) echo 13.0 ;;
+	 esac
+	}
 MAKE(){
 	print
 	printmid "Building package"
@@ -19,8 +37,8 @@ for LIST_PROP in $(find * -name build.info -type f); do
 	BASEMOD=$BASED/files/$ARCH/$SDK/$(dirname $LIST_PROP)
 	NAME=`getp name $BASEMOD/$(basename $LIST_PROP)`
 	ID=`getp id $BASEMOD/$(basename $LIST_PROP)`
-	VERSION=`getp version $BASEMOD/$(basename $LIST_PROP)`
-	CODE=`getp code $BASEMOD/$(basename $LIST_PROP)`
+	VERSION=`date '+%Y%m%d'`
+	CODE=`date '+%Y%m%d'`
 	NUM=$(((NUM+1)))
 	print
 	print "${NUM}. Building $NAME"
@@ -221,6 +239,25 @@ for LIST_PROP in $(find * -name build.info -type f); do
 	rm -rf $TMP
 	done
 
+	#RADME.md
+	local BY=`getp by $BASED/config`
+	local RD=$OUT/$ARCH/$SDK/README.md
+	echo "# Description" > $RD
+	echo " " >> $RD
+	echo "Version = v$(date '+%Y%m%d')" >> $RD
+	echo " " >> $RD
+	echo "Architecture = $ARCH " >> $RD
+	echo " " >> $RD
+	echo "Android Version = $(get_android_version $SDK)" >> $RD
+	echo " " >> $RD
+	echo "API = $SDK" >> $RD
+	echo " " >> $RD
+	echo "Update by = $BY" >> $RD
+	echo " " >> $RD
+	echo "Latest Update = $(date '+%d/%m/%Y %H:%M:%S')" >> $RD
+	echo " " >> $RD
+	echo "Total   = ${NUM} packages" >> $RD
+	echo " " >> $RD
 	print " "
 	print "- Building ${NUM} Packages Done"
 	print " "
