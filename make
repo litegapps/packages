@@ -204,7 +204,7 @@ for LIST_PROP in $(find * -name build.info -type f); do
 		print "- Exec Using <$ZIP>"
 		cd $TMP
 		
-		NAME_ZIP=$OUT/$ARCH/$SDK/$(dirname $(dirname $LIST_PROP))/${ID}.zip
+		NAME_ZIP=$OUT/$ARCH/$SDK/$(dirname $(dirname $LIST_PROP))/${ID}_LiteGapps_Addon_${ARCH}_$(get_android_version $SDK).zip
 		test ! -d $(dirname $NAME_ZIP) && mkdir -p $(dirname $NAME_ZIP)
 		test -f $NAME_ZIP && rm -rf $NAME_ZIP
 		$ZIP -r9 $NAME_ZIP * >/dev/null
