@@ -417,7 +417,7 @@ UPLOAD(){
 	read USERNAME
 	local SERVER=/home/frs/project/litegapps/addon
 	cd $OUT
-	for Y in $(find * -name *zip -type f); do
+	for Y in $(find * -type f); do
 		local FUPLOAD=$Y
 		local SUPLOAD=$SERVER/$Y
 		NUM=$(((NUM+1)))
