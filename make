@@ -26,6 +26,7 @@ get_android_version(){
 		31) echo 12.0 ;;
 		32) echo 12.1 ;;
 		33) echo 13.0 ;;
+		34) echo 14.0 ;;
 	 esac
 	}
 MAKE(){
@@ -49,196 +50,198 @@ for LIST_PROP in $(find * -name build.info -type f); do
 		print "- Skipping"
 		continue
 	fi
-	#cheking oat
-	for S in $(find $BASEMOD -name oat -type d); do
-		if [ -d $BASEMOD/$S ]; then
-			print "- Removing oat <$BASEMOD/$S>"
-			rm -rf $BASEMOD/$S
-		fi
-	done
-	
-	if [ -d $TMP ]; then
-		rm -rf $TMP
-		mkdir -p $TMP
-	else
-		mkdir -p $TMP
-	fi
-	if [ -d $BASEMOD/cross ] && [ "$(ls -A $BASEMOD/cross)" ]; then
-	print "- Found <$BASEMOD/cross>"
-		if [ $SDK -le 28 ]; then
-			[ ! -d $TMP/system ] && mkdir -p $TMP/system
-			cp -af $BASEMOD/cross/* $TMP/system/
-		else
-			[ ! -d $TMP/system/product ] && mkdir -p $TMP/system/product
-			cp -af $BASEMOD/cross/* $TMP/system/product/
-		fi
-	
-	fi
-	if [ -d $BASEMOD/files/system ] && [ "$(ls -A $BASEMOD/files/system)" ]; then
-		print "- Moving <$BASEMOD/files/$ARCH/$SDK>"
-		[ ! -d $BASEMOD/files/system ] && print "! <$BASEMOD/files> not found" && exit 1
-		cp -af $BASEMOD/files/* $TMP/
-	else
-		print "! <$BASEMOD/files/system> Not found"
-	fi
-	
-	#skipping
-	if [ ! -d $BASEMOD/cross ] && [ ! $BASEMOD/files/$ARCH/$SDK ]; then
-		print "! Skipping <$NAME>"
-		continue
-	fi
-	
-	
-	if [ $ID = SetupWizard ]; then
-		print "• Move Setup Wizard Script"
-		LIST_MV="
-		customize.sh                                           
-		module-install.sh
-		module-uninstall.sh                                     
-		package-install.sh
-		package-uninstall.sh                                    
-		permissions.sh                                          
-		uninstall.sh
-		"
-		for R in $LIST_MV; do
-			cp -pf $BASED/utils/flashable/setupwizard/$R $TMP/
-		done
-	elif [ $ID = GoogleKeyboard ]; then
-		print "• Move Google Keyboard Script"
-		LIST_MV="
-		customize.sh                                           
-		module-install.sh
-		module-uninstall.sh                                     
-		package-install.sh
-		package-uninstall.sh                                    
-		permissions.sh                                          
-		uninstall.sh
-		"
-		for R in $LIST_MV; do
-			cp -pf $BASED/utils/flashable/googlekeyboard/$R $TMP/
-		done
-	elif [ $ID = DeskClockGoogle ]; then
-		print "• Move Google Clock Script"
-		LIST_MV="
-		customize.sh                                           
-		module-install.sh
-		module-uninstall.sh                                     
-		package-install.sh
-		package-uninstall.sh                                    
-		permissions.sh                                          
-		uninstall.sh
-		"
-		for R in $LIST_MV; do
-			cp -pf $BASED/utils/flashable/googleclock/$R $TMP/
-		done
-	else
-		print "• Move Flashable Script"
-		LIST_MV="
-		customize.sh                                           
-		module-install.sh
-		module-uninstall.sh                                     
-		package-install.sh
-		package-uninstall.sh                                    
-		permissions.sh                                          
-		uninstall.sh
-		"
-		for R in $LIST_MV; do
-			cp -pf $BASED/utils/flashable/all/$R $TMP/
-		done
-	fi
-	
-	LIST_MV="
-	LICENSE
-	README.md
-	litegapps-prop
-	module.prop
-	"
-	for E in $LIST_MV; do
-		if [ -f $BASED/utils/etc/$E ]; then
-			cp -pf $BASED/utils/etc/$E $TMP/
-		fi
-	done
-	
-	if [ -f $BASEMOD/list-rm ]; then
-		cp -pf $BASEMOD/list-rm $TMP/
-	else
-		print "! <$BASEMOD/list-rm> Not found"
-		exit 1
-	fi
-
-	if [ -d $BASED/utils/installer/kopi ]; then
-		cp -af $BASED/utils/installer/kopi/* $TMP/
-	fi
-
-	if [ -f $TMP/litegapps-prop ]; then
-		print "- Set litegapps-prop"
-		sed -i 's/'"$(getp package.name $TMP/litegapps-prop)"'/'"$NAME"'/g' $TMP/litegapps-prop
-		sed -i 's/'"$(getp package.module $TMP/litegapps-prop)"'/'"$ID"'/g' $TMP/litegapps-prop
-		sed -i 's/'"$(getp package.version $TMP/litegapps-prop)"'/'"$VERSION"'/g' $TMP/litegapps-prop
-		sed -i 's/'"$(getp package.code $TMP/litegapps-prop)"'/'"$CODE"'/g' $TMP/litegapps-prop
-		sed -i 's/'"$(getp package.size $TMP/litegapps-prop)"'/'"$(du -sh $TMP | cut -f1 )"'/g' $TMP/litegapps-prop
-		sed -i 's/'"$(getp package.date $TMP/litegapps-prop)"'/'"$(date +%d-%m-%Y)"'/g' $TMP/litegapps-prop
-	fi
-	if [ -f $TMP/module.prop ]; then
-		print "- Set module.prop"
-		sed -i 's/'"$(getp name $TMP/module.prop)"'/'"LiteGapps Package ${NAME}"'/g' $TMP/module.prop
-		sed -i 's/'"$(getp id $TMP/module.prop)"'/'"LiteGappsPackage${ID}"'/g' $TMP/module.prop
-		sed -i 's/'"$(getp version $TMP/module.prop)"'/'"v${VERSION}"'/g' $TMP/module.prop
-		sed -i 's/'"$(getp versionCode $TMP/module.prop)"'/'"$CODE"'/g' $TMP/module.prop
-		sed -i 's/'"$(getp author $TMP/module.prop)"'/'"The LiteGapps Project"'/g' $TMP/module.prop
-		sed -i 's/'"$(getp date $TMP/module.prop)"'/'"$(date +%d-%m-%Y)"'/g' $TMP/module.prop
-		sed -i 's/'"$(getp android.arch $TMP/module.prop)"'/'"$ARCH"'/g' $TMP/module.prop
-		sed -i 's/'"$(getp android.sdk $TMP/module.prop)"'/'"$SDK"'/g' $TMP/module.prop
-	fi
-	#cheking executebale zip
-	if [ "$(command -v zip)" ]; then
-		ZIP=`command -v zip`
-	elif [ -f $BASED/bin/zip ]; then
-		ZIP=$BASED/bin/zip
-	else
-		print "! Executebale ZIP not detected"
-		exit 1
-	fi
-	if [ -f $ZIP ]; then
-		print "- Make Zip"
-		print "- Exec Using <$ZIP>"
-		cd $TMP
-		
-		NAME_ZIP=$OUT/$ARCH/$SDK/$(dirname $(dirname $LIST_PROP))/${ID}_LiteGapps_Addon_${ARCH}_$(get_android_version $SDK).zip
-		test ! -d $(dirname $NAME_ZIP) && mkdir -p $(dirname $NAME_ZIP)
-		test -f $NAME_ZIP && rm -rf $NAME_ZIP
-		$ZIP -r9 $NAME_ZIP * >/dev/null
-		rm -rf $TMP
-	fi
-	if [ $(getp zipsigner $BASED/config) = true ]; then
-		#cheking java for zip signer
-		if [ "$(command -v java)" ]; then
-			print "- Zip signer"
-			print "- Java using <$(command -v java)>"
-			print "- Input <$NAME_ZIP>"
-			cd $BASED
-			java -jar $BASED/bin/zipsigner.jar $NAME_ZIP ${NAME_ZIP}_signed
-			if [ $? -eq 0 ]; then
-				rm -rf $NAME_ZIP
-				mv ${NAME_ZIP}_signed ${NAME_ZIP}
-			else
-				print "! Failed zip signer <$NAME_ZIP"
-				exit 1
+	for LIST_INSTALL in AUTO; do
+		TMPM=$TMP/$LIST_INSTALL
+		#cheking oat
+		for S in $(find $BASEMOD -name oat -type d); do
+			if [ -d $BASEMOD/$S ]; then
+				print "- Removing oat <$BASEMOD/$S>"
+				rm -rf $BASEMOD/$S
 			fi
+		done
+	
+		if [ -d $TMPM ]; then
+			rm -rf $TMPM
+			mkdir -p $TMPM
 		else
-			print "! java not found"
+			mkdir -p $TMPM
+		fi
+		if [ -d $BASEMOD/cross ] && [ "$(ls -A $BASEMOD/cross)" ]; then
+		print "- Found <$BASEMOD/cross>"
+			if [ $SDK -le 28 ]; then
+				[ ! -d $TMPM/system ] && mkdir -p $TMPM/system
+				cp -af $BASEMOD/cross/* $TMPM/system/
+			else
+				[ ! -d $TMPM/system/product ] && mkdir -p $TMPM/system/product
+				cp -af $BASEMOD/cross/* $TMPM/system/product/
+			fi
+	
+		fi
+		if [ -d $BASEMOD/files/system ] && [ "$(ls -A $BASEMOD/files/system)" ]; then
+			print "- Moving <$BASEMOD/files/$ARCH/$SDK>"
+			[ ! -d $BASEMOD/files/system ] && print "! <$BASEMOD/files> not found" && exit 1
+			cp -af $BASEMOD/files/* $TMPM/
+		else
+			print "! <$BASEMOD/files/system> Not found"
+		fi
+	
+		#skipping
+		if [ ! -d $BASEMOD/cross ] && [ ! $BASEMOD/files/$ARCH/$SDK ]; then
+			print "! Skipping <$NAME>"
+			continue
+		fi
+	
+	
+		if [ $ID = SetupWizard ]; then
+			print "• Move Setup Wizard Script"
+			LIST_MV="
+			customize.sh                                           
+			module-install.sh
+			module-uninstall.sh                                     
+			package-install.sh
+			package-uninstall.sh                                    
+			permissions.sh                                          
+			uninstall.sh
+			"
+			for R in $LIST_MV; do
+				cp -pf $BASED/utils/flashable/setupwizard/$R $TMPM/
+			done
+		elif [ $ID = GoogleKeyboard ]; then
+			print "• Move Google Keyboard Script"
+			LIST_MV="
+			customize.sh                                           
+			module-install.sh
+			module-uninstall.sh                                     
+			package-install.sh
+			package-uninstall.sh                                    
+			permissions.sh                                          
+			uninstall.sh
+			"
+			for R in $LIST_MV; do
+				cp -pf $BASED/utils/flashable/googlekeyboard/$R $TMPM/
+			done
+		elif [ $ID = DeskClockGoogle ]; then
+			print "• Move Google Clock Script"
+			LIST_MV="
+			customize.sh                                           
+			module-install.sh
+			module-uninstall.sh                                     
+			package-install.sh
+			package-uninstall.sh                                    
+			permissions.sh                                          
+			uninstall.sh
+			"
+			for R in $LIST_MV; do
+				cp -pf $BASED/utils/flashable/googleclock/$R $TMPM/
+			done
+		else
+			print "• Move Flashable Script"
+			LIST_MV="
+			customize.sh                                           
+			module-install.sh
+			module-uninstall.sh                                     
+			package-install.sh
+			package-uninstall.sh                                    
+			permissions.sh                                          
+			uninstall.sh
+			"
+			for R in $LIST_MV; do
+				cp -pf $BASED/utils/flashable/all/$R $TMPM/
+			done
+		fi
+	
+		LIST_MV="
+		LICENSE
+		README.md
+		litegapps-prop
+		module.prop
+		"
+		for E in $LIST_MV; do
+			if [ -f $BASED/utils/etc/$E ]; then
+				cp -pf $BASED/utils/etc/$E $TMPM/
+			fi
+		done
+	
+		if [ -f $BASEMOD/list-rm ]; then
+			cp -pf $BASEMOD/list-rm $TMPM/
+		else
+			print "! <$BASEMOD/list-rm> Not found"
 			exit 1
 		fi
-	fi
-	if [ -f $NAME_ZIP ]; then
-	print "- Name : $(basename $NAME_ZIP)"
-	print "- Size : $(du -sh $NAME_ZIP | cut -f1 )"
-	print "- Out  : $NAME_ZIP"
-	print "- Done"
-	fi
-	rm -rf $TMP
-	done
 
+		if [ -d $BASED/utils/installer/kopi ]; then
+			cp -af $BASED/utils/installer/kopi/* $TMPM/
+		fi
+
+		if [ -f $TMPM/litegapps-prop ]; then
+			print "- Set litegapps-prop"
+			sed -i 's/'"$(getp package.name $TMPM/litegapps-prop)"'/'"$NAME"'/g' $TMPM/litegapps-prop
+			sed -i 's/'"$(getp package.module $TMPM/litegapps-prop)"'/'"$ID"'/g' $TMPM/litegapps-prop
+			sed -i 's/'"$(getp package.version $TMPM/litegapps-prop)"'/'"$VERSION"'/g' $TMPM/litegapps-prop
+			sed -i 's/'"$(getp package.code $TMPM/litegapps-prop)"'/'"$CODE"'/g' $TMPM/litegapps-prop
+			sed -i 's/'"$(getp package.size $TMPM/litegapps-prop)"'/'"$(du -sh $TMPM | cut -f1 )"'/g' $TMPM/litegapps-prop
+			sed -i 's/'"$(getp package.date $TMPM/litegapps-prop)"'/'"$(date +%d-%m-%Y)"'/g' $TMPM/litegapps-prop
+		fi
+		if [ -f $TMPM/module.prop ]; then
+			print "- Set module.prop"
+			sed -i 's/'"$(getp name $TMPM/module.prop)"'/'"LiteGapps Package ${NAME}"'/g' $TMPM/module.prop
+			sed -i 's/'"$(getp id $TMPM/module.prop)"'/'"LiteGappsPackage${ID}"'/g' $TMPM/module.prop
+			sed -i 's/'"$(getp version $TMPM/module.prop)"'/'"v${VERSION}"'/g' $TMPM/module.prop
+			sed -i 's/'"$(getp versionCode $TMPM/module.prop)"'/'"$CODE"'/g' $TMPM/module.prop
+			sed -i 's/'"$(getp author $TMPM/module.prop)"'/'"The LiteGapps Project"'/g' $TMPM/module.prop
+			sed -i 's/'"$(getp date $TMPM/module.prop)"'/'"$(date +%d-%m-%Y)"'/g' $TMPM/module.prop
+			sed -i 's/'"$(getp android.arch $TMPM/module.prop)"'/'"$ARCH"'/g' $TMPM/module.prop
+			sed -i 's/'"$(getp android.sdk $TMPM/module.prop)"'/'"$SDK"'/g' $TMPM/module.prop
+		fi
+		#cheking executebale zip
+		if [ "$(command -v zip)" ]; then
+			ZIP=`command -v zip`
+		elif [ -f $BASED/bin/zip ]; then
+			ZIP=$BASED/bin/zip
+		else
+			print "! Executebale ZIP not detected"
+			exit 1
+		fi
+		if [ -f $ZIP ]; then
+			print "- Make Zip"
+			print "- Exec Using <$ZIP>"
+			cd $TMPM
+			DIRNAME_PROP=$(dirname $(dirname $LIST_PROP))
+			NAME_ZIP=$OUT/$ARCH/$SDK/$DIRNAME_PROP/${ID}/${LIST_INSTALL}_${ID}_LiteGapps_Addon_${ARCH}_$(get_android_version $SDK).zip
+			test ! -d $(dirname $NAME_ZIP) && mkdir -p $(dirname $NAME_ZIP)
+			test -f $NAME_ZIP && rm -rf $NAME_ZIP
+			$ZIP -r9 $NAME_ZIP * >/dev/null
+			rm -rf $TMPM
+		fi
+		if [ $(getp zipsigner $BASED/config) = true ]; then
+			#cheking java for zip signer
+			if [ "$(command -v java)" ]; then
+				print "- Zip signer"
+				print "- Java using <$(command -v java)>"
+				print "- Input <$NAME_ZIP>"
+				cd $BASED
+				java -jar $BASED/bin/zipsigner.jar $NAME_ZIP ${NAME_ZIP}_signed
+				if [ $? -eq 0 ]; then
+					rm -rf $NAME_ZIP
+					mv ${NAME_ZIP}_signed ${NAME_ZIP}
+				else
+					print "! Failed zip signer <$NAME_ZIP"
+					exit 1
+				fi
+			else
+				print "! java not found"
+				exit 1
+			fi
+		fi
+		if [ -f $NAME_ZIP ]; then
+		print "- Name : $(basename $NAME_ZIP)"
+		print "- Size : $(du -sh $NAME_ZIP | cut -f1 )"
+		print "- Out  : $NAME_ZIP"
+		print "- Done"
+		fi
+		rm -rf $TMPM
+		done
+	done
 	#RADME.md
 	local BY=`getp by $BASED/config`
 	local RD=$OUT/$ARCH/$SDK/README.md
