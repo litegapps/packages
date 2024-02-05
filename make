@@ -50,10 +50,12 @@ for LIST_PROP in $(find * -name build.info -type f); do
 		print "- Skipping"
 		continue
 	fi
-	for LIST_INSTALL in AUTO; do
+	for LIST_INSTALL in MAKSU RECOVERY AUTO; do
 		TMPM=$TMP/$LIST_INSTALL
+		print
+		print "   [${LIST_INSTALL}]"
 		#cheking oat
-		for S in $(find $BASEMOD -name oat -type d); do
+		for S in $(find $BASEMOD -name oat -type d 2>/dev/null); do
 			if [ -d $BASEMOD/$S ]; then
 				print "- Removing oat <$BASEMOD/$S>"
 				rm -rf $BASEMOD/$S
@@ -92,75 +94,18 @@ for LIST_PROP in $(find * -name build.info -type f); do
 		fi
 	
 	
-		if [ $ID = SetupWizard ]; then
-			print "• Move Setup Wizard Script"
-			LIST_MV="
-			customize.sh                                           
-			module-install.sh
-			module-uninstall.sh                                     
-			package-install.sh
-			package-uninstall.sh                                    
-			permissions.sh                                          
-			uninstall.sh
-			"
-			for R in $LIST_MV; do
-				cp -pf $BASED/utils/flashable/setupwizard/$R $TMPM/
-			done
-		elif [ $ID = GoogleKeyboard ]; then
-			print "• Move Google Keyboard Script"
-			LIST_MV="
-			customize.sh                                           
-			module-install.sh
-			module-uninstall.sh                                     
-			package-install.sh
-			package-uninstall.sh                                    
-			permissions.sh                                          
-			uninstall.sh
-			"
-			for R in $LIST_MV; do
-				cp -pf $BASED/utils/flashable/googlekeyboard/$R $TMPM/
-			done
-		elif [ $ID = DeskClockGoogle ]; then
-			print "• Move Google Clock Script"
-			LIST_MV="
-			customize.sh                                           
-			module-install.sh
-			module-uninstall.sh                                     
-			package-install.sh
-			package-uninstall.sh                                    
-			permissions.sh                                          
-			uninstall.sh
-			"
-			for R in $LIST_MV; do
-				cp -pf $BASED/utils/flashable/googleclock/$R $TMPM/
-			done
-		else
-			print "• Move Flashable Script"
-			LIST_MV="
-			customize.sh                                           
-			module-install.sh
-			module-uninstall.sh                                     
-			package-install.sh
-			package-uninstall.sh                                    
-			permissions.sh                                          
-			uninstall.sh
-			"
-			for R in $LIST_MV; do
-				cp -pf $BASED/utils/flashable/all/$R $TMPM/
-			done
-		fi
-	
+		
+		print "• Move Flashable Script"
 		LIST_MV="
-		LICENSE
-		README.md
+		customize.sh
 		litegapps-prop
+		LICENSE
 		module.prop
 		"
-		for E in $LIST_MV; do
-			if [ -f $BASED/utils/etc/$E ]; then
-				cp -pf $BASED/utils/etc/$E $TMPM/
-			fi
+		for R in $LIST_MV; do
+		cp -pf $BASED/utils/$R $TMPM/
 		done
+		
 	
 		if [ -f $BASEMOD/list-rm ]; then
 			cp -pf $BASEMOD/list-rm $TMPM/
@@ -168,15 +113,24 @@ for LIST_PROP in $(find * -name build.info -type f); do
 			print "! <$BASEMOD/list-rm> Not found"
 			exit 1
 		fi
-
-		if [ -d $BASED/utils/installer/kopi ]; then
-			cp -af $BASED/utils/installer/kopi/* $TMPM/
-		fi
-
+		
+		case $LIST_INSTALL in
+		MAKSU)
+		cp -af $BASED/utils/maksu/* $TMPM/
+		;;
+		RECOVERY)
+		cp -af $BASED/utils/kopi/* $TMPM/
+		sed -i 's/'"$(getp typeinstall $TMPM/module.prop)"'/'"kopi"'/g' $TMPM/module.prop
+		;;
+		AUTO)
+		sed -i 's/'"$(getp typeinstall $TMPM/module.prop)"'/'"auto"'/g' $TMPM/module.prop
+		cp -af $BASED/utils/kopi/* $TMPM/
+		;;
+		esac
 		if [ -f $TMPM/litegapps-prop ]; then
 			print "- Set litegapps-prop"
 			sed -i 's/'"$(getp package.name $TMPM/litegapps-prop)"'/'"$NAME"'/g' $TMPM/litegapps-prop
-			sed -i 's/'"$(getp package.module $TMPM/litegapps-prop)"'/'"$ID"'/g' $TMPM/litegapps-prop
+			sed -i 's/'"$(getp package.id $TMPM/litegapps-prop)"'/'"$ID"'/g' $TMPM/litegapps-prop
 			sed -i 's/'"$(getp package.version $TMPM/litegapps-prop)"'/'"$VERSION"'/g' $TMPM/litegapps-prop
 			sed -i 's/'"$(getp package.code $TMPM/litegapps-prop)"'/'"$CODE"'/g' $TMPM/litegapps-prop
 			sed -i 's/'"$(getp package.size $TMPM/litegapps-prop)"'/'"$(du -sh $TMPM | cut -f1 )"'/g' $TMPM/litegapps-prop
@@ -239,7 +193,7 @@ for LIST_PROP in $(find * -name build.info -type f); do
 		print "- Out  : $NAME_ZIP"
 		print "- Done"
 		fi
-		rm -rf $TMPM
+		rm -rf $TMP
 		done
 	done
 	#RADME.md
@@ -264,6 +218,7 @@ for LIST_PROP in $(find * -name build.info -type f); do
 	print " "
 	print "- Building ${NUM} Packages Done"
 	print " "
+	
 	}
 
 RESTORE(){
@@ -489,8 +444,16 @@ zip_upload(){
 BASED="`dirname $(readlink -f "$0")`"
 OUT=$BASED/output
 TMP=$BASED/tmp
+if [ "$2" ]; then
+ARCH=$2
+else
 ARCH=`getp arch $BASED/config`
+fi
+if [ "$3" ]; then
+SDK=$3
+else
 SDK=`getp sdk $BASED/config`
+fi
 chmod -R 755 $BASED/bin
 
 case $1 in

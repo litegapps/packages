@@ -1,9 +1,10 @@
-# Copyright (C) 2020-2022 The LiteGapps Project
+# Copyright (C) 2020-2024 The LiteGapps Project
 # by wahyu6070
 # permissions.sh (run by update-binary)
 #
 
-if [ $TYPEINSTALL = magisk ]; then
+case $TYPEINSTALL in
+magisk | ksu)
 chcon -hR u:object_r:system_file:s0 $MAGISKUP/system
 find $MAGISKUP/system -type f | while read anjay; do
 	dir6070=$(dirname $anjay)
@@ -12,4 +13,5 @@ find $MAGISKUP/system -type f | while read anjay; do
 	chcon -h u:object_r:system_file:s0 $dir6070
 	chmod 755 $dir6070
 done
-fi
+;;
+esac
