@@ -346,19 +346,8 @@ for Y in $SYSTEM $PRODUCT $SYSTEM_EXT; do
         for P in $(cat $MODPATH/list-rm); do
            if [ -d $Y/$G/$P ]; then
              if [ $TYPEINSTALL = systemless ]; then
-             	if [ $KSU_NEXT = true ]; then
-             	# debloat KSU_NEXT
-             		if [ $SYSTEM = $Y ]; then
-             			printlog "- Debloating KSU-NEXT $Y/$G/$P"
-             			mkdir -p $MODPATH/system/$G/$P/.replace
-                	elif [ $SYSTEM_EXT = $Y ]; then
-                		printlog "- Debloating KSU-NEXT $Y/$G/$P"
-                		mkdir -p $MODPATH/system/system_ext/$G/$P/.replace
-                	elif [ $PRODUCT = $Y ]; then
-                    	printlog "- Debloating KSU-NEXT $Y/$G/$P"
-                    	mkdir -p $MODPATH/system/product/$G/$P/.replace
-                	fi
-             	elif [ $KSU = true ] || [ $APATCH = true ]; then
+             
+             	if [ $KSU_NEXT = true ] || [ $KSU = true ] || [ $APATCH = true ]; then
              	# debloat by ksu/apatch 
              		if [ $SYSTEM = $Y ]; then
              			printlog "- Debloating KSU/APATCH $Y/$G/$P"
@@ -375,7 +364,6 @@ for Y in $SYSTEM $PRODUCT $SYSTEM_EXT; do
                 	fi
              	
              	else
-             	
              	# debloat by magisk
              		if [ $SYSTEM = $Y ]; then
              			printlog "- Debloating systemless2 $Y/$G/$P"
