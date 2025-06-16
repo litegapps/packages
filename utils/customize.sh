@@ -367,11 +367,11 @@ for Y in $SYSTEM $PRODUCT $SYSTEM_EXT; do
                 	elif [ $SYSTEM_EXT = $Y ]; then
                 		printlog "- Debloating KSU/APATCH $Y/$G/$P"
                 		mkdir -p $MODPATH/system/system_ext/$G/$P
-                		touch $MODPATH/system_ext/$G/$P/${P}.apk
+                		touch $MODPATH/system/system_ext/$G/$P/${P}.apk
                 	elif [ $PRODUCT = $Y ]; then
                     	printlog "- Debloating KSU/APATCH $Y/$G/$P"
                     	mkdir -p $MODPATH/system/product/$G/$P
-                    	touch $MODPATH/product/$G/$P/${P}.apk
+                    	touch $MODPATH/system/product/$G/$P/${P}.apk
                 	fi
              	
              	else
